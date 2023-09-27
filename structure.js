@@ -1,5 +1,6 @@
 const REGISTERFORM = $('#registerForm');
 const LOGINFORM = $('#loginForm');
+getUserList();
 
 REGISTERFORM.on("submit", (e) =>{
     // pour empecher m'envoie du formulaire
@@ -71,13 +72,81 @@ function login(pseudo, password, action){
     fetch("http://localhost/api_back/", dataOption)
     .then(response => {
         response.json()
-        .then(data => {
-            console.log(data);
-            localStorage.setItem("iduser", data.data.id_user)
-            localStorage.setItem("firstname", data.data.firstname)
-            window.location.href("");
+        .then(donnee => {
+            console.log(donnee);
+            // on enregistre l'identifiant et le prenom de l'utilisateur dans le localstorage
+            localStorage.setItem("iduser", donnee.userInfo.id_user)
+            localStorage.setItem("firstname", donnee.userInfo.firstname)
+            window.location.href = "index.html";
         })
         .catch(error => error);
     })
     .catch(error => console.log("il y a une erreur"));
+}
+
+// fonction pour obtenir la liste des utilisateurs
+function getUserList(){
+    fetch("http://localhost/api_back/getuserlist/")
+    .then(response => {
+        response.json()
+            .then(data => {
+                // console.log(data);
+                // appel de printUsers
+                printUsers(data.data);
+            })
+            .catch(error => console.log(error));
+    })
+    .catch(error => console.log(error));
+}
+
+// fonction pour afficher la liste des user
+function printUsers(listUser){
+    listUser.forEach(element => {
+        // creer une balise p en lui ajoutant le prenom de l'utilisateur comme texte
+        let p = document.createElement("p");
+        p.textContent = element.firstname;
+        p.id = element.id_user;
+        
+        p.addEventListener("click", () =>{
+            // console.log(localStorage.getItem("iduser"), p.id);
+            getListMessage(localStorage.getItem("iduser"), p.id);
+        })
+        // on ajoute le paragraphe comme enfant de la div avec la class user_list
+        $("#user_list").append(p);
+    });
+}
+
+// fonction pour avoir la liste des message entre deux utilisateurs getListMessage
+function getListMessage(expeditor, receiver){
+    fetch("http://localhost/api_back/getListMessage/"+expeditor+"/"+receiver)
+    .then(response => {
+        response.json()
+        .then(data => {
+            // traitement
+            // console.log(data);
+            printMessages(data.listMessage);
+        })
+        .catch(error => console.log(error));
+    })
+    .catch(error => console.log(error));
+}
+
+// fonction pour afficher la liste des message entre 2 users
+function printMessages(listMessage){
+    document.getElementById("discution").innerHTML = "";
+    listMessage.forEach(element => {
+        // on cree une div et un paragraphe
+        let div = document.createElement("div");
+        let p = document.createElement("p");
+        // on ajoute le paragraphe a la div
+        div.append(p);
+        // on ajoute au paragraphe son text
+        p.textContent = element.message;
+        if(element.expeditor_id == localStorage.getItem['iduser']){
+            div.className = "expediteur";
+        }else{
+            div.className = "recepteur";
+        }
+        $("#discution").append(div);
+    });
 }
