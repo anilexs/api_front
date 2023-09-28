@@ -1,7 +1,10 @@
 const REGISTERFORM = $('#registerForm');
 const LOGINFORM = $('#loginForm');
+const MESSAGFORM = $('#messageForm');
+let interlocutor = null;
 getUserList();
 
+// au click sur le bouton s'inscrire
 REGISTERFORM.on("submit", (e) =>{
     // pour empecher m'envoie du formulaire
     e.preventDefault();
@@ -26,7 +29,19 @@ LOGINFORM.on("submit", (e) =>{
     login(pseudo, password, action);
 })
 
+// au click sur le bouton envoyer message
+MESSAGFORM.on('submit', (e) => {
+    e.preventDefault();
+    // recuperation du message
+    let message = $("#message").val();
+    let action = $("#action").val();
+    let expeditor = localStorage.getItem("iduser");
+    let receiver = interlocutor;
+    // appel de la fonction sendMessage
+    sendMessage(expeditor, receiver, message, action);
+})
 
+// fonction register
 function register(pseudo, firstName, lastName, password, action){
     let data = {
         pseudo : pseudo,
@@ -108,8 +123,9 @@ function printUsers(listUser){
         p.id = element.id_user;
         
         p.addEventListener("click", () =>{
-            // console.log(localStorage.getItem("iduser"), p.id);
             getListMessage(localStorage.getItem("iduser"), p.id);
+            interlocutor = p.id;
+
         })
         // on ajoute le paragraphe comme enfant de la div avec la class user_list
         $("#user_list").append(p);
@@ -142,11 +158,40 @@ function printMessages(listMessage){
         div.append(p);
         // on ajoute au paragraphe son text
         p.textContent = element.message;
-        if(element.expeditor_id == localStorage.getItem['iduser']){
+        if(element.expeditor_id == localStorage.getItem('iduser')){
             div.className = "expediteur";
         }else{
             div.className = "recepteur";
         }
         $("#discution").append(div);
     });
+}
+
+// fonction pour envoyer un message
+function sendMessage(expeditor, receiver, message, action){
+    let data = {
+        expeditor: expeditor,
+        receiver: receiver,
+        message: message,
+        action: action
+    };
+
+    let dataOption = {
+        method: "post",
+        body: JSON.stringify(data)
+    };
+
+    // on envoi la requete vers l'api
+    fetch("http://localhost/api_back/", dataOption)
+    .then((response) => {
+        response.json()
+        .then(data => {
+            // console.log(data);
+            getListMessage(expeditor, receiver);
+            $("#message").val("").select();
+
+        })
+        .catch((error) => console.log(error));
+    })
+    .catch((error) => console.log(error));
 }

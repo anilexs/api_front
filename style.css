@@ -27,11 +27,14 @@
     height: 35px;
 }
 .expediteur{
-    /* width: 200px; */
-    direction: ltr;
+    width: 200px;
+    border: 2px solid;
+    margin: 5px 0px 5px 200px;
+    background-color: aqua;
 }
 .recepteur{
-    /* width: 200px; */
-    direction: rtl;
-    
+    width: 200px;
+    border: 2px solid;
+    background-color: cadetblue; 
+    margin: 5px 0px;
 }
